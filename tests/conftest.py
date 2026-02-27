@@ -471,3 +471,121 @@ def sample_pipeline_restructuring_summary():
             "pipeline restructuring",
         ],
     )
+
+
+# ── Phase 4: Translator fixtures ────────────────────────────────────────────
+
+@pytest.fixture
+def sample_classification_parameter_tuning(
+    sample_parameter_tuning_summary,
+    sample_topology_none,
+    seeded_artifact_registry,
+):
+    """ClassificationResult for parameter tuning via classify()."""
+    from research_engineer.classifier.heuristics import classify
+
+    return classify(
+        sample_parameter_tuning_summary,
+        sample_topology_none,
+        [],
+        seeded_artifact_registry,
+    )
+
+
+@pytest.fixture
+def sample_classification_modular_swap(
+    sample_modular_swap_summary,
+    sample_topology_component_swap,
+    seeded_artifact_registry,
+):
+    """ClassificationResult for modular swap via classify()."""
+    from research_engineer.classifier.heuristics import classify
+
+    return classify(
+        sample_modular_swap_summary,
+        sample_topology_component_swap,
+        [],
+        seeded_artifact_registry,
+    )
+
+
+@pytest.fixture
+def sample_classification_architectural(
+    sample_architectural_summary,
+    sample_topology_stage_addition,
+    seeded_artifact_registry,
+):
+    """ClassificationResult for architectural innovation via classify()."""
+    from research_engineer.classifier.heuristics import classify
+
+    return classify(
+        sample_architectural_summary,
+        sample_topology_stage_addition,
+        [],
+        seeded_artifact_registry,
+    )
+
+
+@pytest.fixture
+def sample_classification_pipeline_restructuring(
+    sample_pipeline_restructuring_summary,
+    sample_topology_flow_restructuring,
+    seeded_artifact_registry,
+):
+    """ClassificationResult for pipeline restructuring via classify()."""
+    from research_engineer.classifier.heuristics import classify
+
+    return classify(
+        sample_pipeline_restructuring_summary,
+        sample_topology_flow_restructuring,
+        [],
+        seeded_artifact_registry,
+    )
+
+
+@pytest.fixture
+def sample_topology_flow_restructuring():
+    """TopologyChange with flow_restructuring change type."""
+    from research_engineer.comprehension.topology import (
+        TopologyChange,
+        TopologyChangeType,
+    )
+
+    return TopologyChange(
+        change_type=TopologyChangeType.flow_restructuring,
+        affected_stages=["retrieval", "reranking", "generation"],
+        confidence=0.67,
+        evidence=["flow_restructuring keyword: 'restructure'"],
+    )
+
+
+@pytest.fixture
+def sample_file_targeting_modular_swap(
+    sample_modular_swap_summary,
+    clearinghouse_manifests,
+):
+    """FileTargeting from identify_targets() for modular swap."""
+    from research_engineer.classifier.types import InnovationType
+    from research_engineer.translator.manifest_targeter import identify_targets
+
+    return identify_targets(
+        sample_modular_swap_summary,
+        InnovationType.modular_swap,
+        clearinghouse_manifests,
+    )
+
+
+@pytest.fixture
+def sample_change_pattern_report(clearinghouse_ledger):
+    """ChangePatternReport from mine_ledger()."""
+    from research_engineer.translator.change_patterns import mine_ledger
+
+    return mine_ledger(clearinghouse_ledger)
+
+
+@pytest.fixture
+def tmp_blueprint_output_dir(tmp_path: Path) -> Path:
+    """Temporary directory for blueprint output."""
+    d = tmp_path / "blueprint_output"
+    d.mkdir()
+    return d
