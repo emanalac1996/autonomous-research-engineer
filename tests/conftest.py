@@ -348,3 +348,126 @@ def sample_architectural_summary():
             "answer generation",
         ],
     )
+
+
+# ── Phase 2: Classifier fixtures ─────────────────────────────────────────────
+
+@pytest.fixture
+def tmp_artifact_registry(tmp_path: Path):
+    """Empty ArtifactRegistry backed by a temporary directory."""
+    from agent_factors.artifacts import ArtifactRegistry
+
+    store_dir = tmp_path / "artifact_store"
+    store_dir.mkdir()
+    return ArtifactRegistry(store_dir=store_dir)
+
+
+@pytest.fixture
+def seeded_artifact_registry(tmp_artifact_registry):
+    """ArtifactRegistry with the seed classification heuristic pre-loaded."""
+    from research_engineer.classifier.seed_artifact import register_seed_artifact
+
+    register_seed_artifact(tmp_artifact_registry)
+    return tmp_artifact_registry
+
+
+@pytest.fixture
+def sample_topology_none():
+    """TopologyChange with no topology change detected."""
+    from research_engineer.comprehension.topology import (
+        TopologyChange,
+        TopologyChangeType,
+    )
+
+    return TopologyChange(
+        change_type=TopologyChangeType.none,
+        affected_stages=[],
+        confidence=0.67,
+        evidence=["no_topology keyword: 'parameter'"],
+    )
+
+
+@pytest.fixture
+def sample_topology_component_swap():
+    """TopologyChange for a component swap."""
+    from research_engineer.comprehension.topology import (
+        TopologyChange,
+        TopologyChangeType,
+    )
+
+    return TopologyChange(
+        change_type=TopologyChangeType.component_swap,
+        affected_stages=["retrieval"],
+        confidence=0.67,
+        evidence=["component_swap keyword: 'replace'"],
+    )
+
+
+@pytest.fixture
+def sample_topology_stage_addition():
+    """TopologyChange for a stage addition."""
+    from research_engineer.comprehension.topology import (
+        TopologyChange,
+        TopologyChangeType,
+    )
+
+    return TopologyChange(
+        change_type=TopologyChangeType.stage_addition,
+        affected_stages=["retrieval", "generation", "graph construction"],
+        confidence=0.67,
+        evidence=["stage_addition keyword: 'new pipeline stage'"],
+    )
+
+
+@pytest.fixture
+def sample_pipeline_restructuring_summary():
+    """Pre-built ComprehensionSummary for pipeline restructuring paper."""
+    from research_engineer.comprehension.schema import (
+        ComprehensionSummary,
+        MathCore,
+        PaperClaim,
+    )
+
+    return ComprehensionSummary(
+        title="Restructured Retrieval Pipeline with Reordered Reranking",
+        transformation_proposed=(
+            "Restructure the retrieval pipeline to reorder the reranking "
+            "stage before the generation stage, changing the data flow "
+            "to improve answer quality"
+        ),
+        inputs_required=[
+            "query text",
+            "retrieval results",
+            "reranking model",
+        ],
+        outputs_produced=[
+            "reordered retrieval results",
+            "improved generation context",
+        ],
+        claims=[
+            PaperClaim(
+                claim_text=(
+                    "Reordering reranking before generation improves "
+                    "answer accuracy by 12.1%"
+                ),
+                metric_name="answer_accuracy",
+                metric_value=12.1,
+                dataset="NQ-open",
+            ),
+        ],
+        limitations=[
+            "Adds additional latency from reranking step",
+            "Requires reranking model not in current pipeline",
+        ],
+        mathematical_core=MathCore(
+            formulation="Reranking scores feed directly into generation context",
+            complexity="O(n log n) for reranking n passages",
+            assumptions=["Reranking model is available"],
+        ),
+        paper_terms=[
+            "reranking",
+            "retrieval",
+            "generation",
+            "pipeline restructuring",
+        ],
+    )

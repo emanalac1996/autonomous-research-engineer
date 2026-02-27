@@ -74,8 +74,14 @@ def match_terms_to_patterns(
     Returns:
         List of PatternMatch objects.
     """
-    # Scoped sys.path insertion to import match_problem
+    # Import match_problem from clearinghouse with isolation.
+    # The clearinghouse scripts/ package may conflict with our own scripts/
+    # package, so we temporarily stash any cached 'scripts' module.
     ch_str = str(clearinghouse_root)
+    stashed_scripts = {}
+    for key in list(sys.modules):
+        if key == "scripts" or key.startswith("scripts."):
+            stashed_scripts[key] = sys.modules.pop(key)
     added = ch_str not in sys.path
     if added:
         sys.path.insert(0, ch_str)
@@ -84,6 +90,12 @@ def match_terms_to_patterns(
     finally:
         if added and ch_str in sys.path:
             sys.path.remove(ch_str)
+        # Remove clearinghouse scripts modules from cache
+        for key in list(sys.modules):
+            if key == "scripts" or key.startswith("scripts."):
+                del sys.modules[key]
+        # Restore our stashed scripts modules
+        sys.modules.update(stashed_scripts)
 
     results: list[PatternMatch] = []
     for term in terms:
