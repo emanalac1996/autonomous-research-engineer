@@ -589,3 +589,63 @@ def tmp_blueprint_output_dir(tmp_path: Path) -> Path:
     d = tmp_path / "blueprint_output"
     d.mkdir()
     return d
+
+
+# ── Phase 5: Calibration fixtures ──────────────────────────────────────────
+
+@pytest.fixture
+def sample_accuracy_records():
+    """6 AccuracyRecords: 4 correct + 2 misclassified."""
+    from research_engineer.calibration.tracker import AccuracyRecord
+    from research_engineer.classifier.types import InnovationType
+
+    records = []
+    # 4 correct — one per innovation type
+    for i, itype in enumerate(InnovationType):
+        records.append(AccuracyRecord(
+            paper_id=f"conftest-{i}",
+            predicted_type=itype,
+            ground_truth_type=itype,
+            confidence=0.85,
+        ))
+
+    # 2 misclassifications
+    records.append(AccuracyRecord(
+        paper_id="conftest-miss-1",
+        predicted_type=InnovationType.parameter_tuning,
+        ground_truth_type=InnovationType.modular_swap,
+        confidence=0.55,
+    ))
+    records.append(AccuracyRecord(
+        paper_id="conftest-miss-2",
+        predicted_type=InnovationType.pipeline_restructuring,
+        ground_truth_type=InnovationType.architectural_innovation,
+        confidence=0.50,
+    ))
+
+    return records
+
+
+@pytest.fixture
+def sample_accuracy_tracker(sample_accuracy_records, tmp_calibration_dir):
+    """Pre-populated AccuracyTracker with JSONL persistence."""
+    from research_engineer.calibration.tracker import AccuracyTracker
+
+    store_path = tmp_calibration_dir / "accuracy_records.jsonl"
+    tracker = AccuracyTracker(store_path=store_path)
+    for record in sample_accuracy_records:
+        tracker.add_record(record)
+    return tracker
+
+
+@pytest.fixture
+def sample_calibration_input(sample_accuracy_tracker, seeded_artifact_registry):
+    """Bundled CalibrationInput for report testing."""
+    from research_engineer.calibration.report import CalibrationInput
+
+    return CalibrationInput(
+        tracker=sample_accuracy_tracker,
+        registry=seeded_artifact_registry,
+        repo_name="autonomous-research-engineer",
+        current_maturity_level="foundational",
+    )
