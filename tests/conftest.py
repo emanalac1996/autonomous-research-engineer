@@ -174,3 +174,177 @@ accuracy by 18.4% on complex multi-hop questions.
 Limitations: Graph construction adds 340ms latency per query. Requires
 entity linking model not currently in the pipeline.
 """
+
+
+# ── ComprehensionSummary fixtures ──────────────────────────────────────────
+
+@pytest.fixture
+def sample_parameter_tuning_summary():
+    """Pre-built ComprehensionSummary for parameter tuning paper."""
+    from research_engineer.comprehension.schema import (
+        ComprehensionSummary,
+        MathCore,
+        PaperClaim,
+    )
+
+    return ComprehensionSummary(
+        title="Optimal RRF Weight Selection for Hybrid Retrieval",
+        transformation_proposed=(
+            "Adjust reciprocal rank fusion weight parameter k "
+            "from default k=60 to optimal k=42"
+        ),
+        inputs_required=["BM25 retrieval scores", "dense retrieval scores"],
+        outputs_produced=["re-ranked result list with adjusted RRF weights"],
+        claims=[
+            PaperClaim(
+                claim_text=(
+                    "k=42 improves MRR@10 by 2.3% over default k=60 "
+                    "across 13 BEIR datasets"
+                ),
+                metric_name="MRR@10",
+                metric_value=2.3,
+                baseline_comparison=0.0,
+                dataset="BEIR",
+            ),
+        ],
+        limitations=[
+            "Optimal k may vary by domain",
+            "Evaluation limited to BEIR benchmark",
+        ],
+        mathematical_core=MathCore(
+            formulation="RRF(d) = sum(1 / (k + rank_i(d))) for retriever i",
+            complexity="O(n log n) for sorting n results",
+            assumptions=["Scores from both retrievers are comparable in scale"],
+        ),
+        paper_terms=[
+            "reciprocal rank fusion",
+            "BM25",
+            "dense retrieval",
+            "hybrid retrieval",
+            "MRR@10",
+        ],
+    )
+
+
+@pytest.fixture
+def sample_modular_swap_summary():
+    """Pre-built ComprehensionSummary for modular swap paper (learned sparse)."""
+    from research_engineer.comprehension.schema import (
+        ComprehensionSummary,
+        MathCore,
+        PaperClaim,
+    )
+
+    return ComprehensionSummary(
+        title="Learned Sparse Representations for Multi-Hop Retrieval",
+        transformation_proposed=(
+            "Replace BM25 sparse retrieval with learned sparse "
+            "representations using SPLADE"
+        ),
+        inputs_required=[
+            "query text",
+            "pre-trained language model",
+            "inverted index",
+        ],
+        outputs_produced=[
+            "sparse term-weight vectors",
+            "retrieval results via inverted index lookup",
+        ],
+        claims=[
+            PaperClaim(
+                claim_text=(
+                    "Achieves +36.7% MRR@10 on multi-hop queries "
+                    "compared to BM25 baseline"
+                ),
+                metric_name="MRR@10",
+                metric_value=0.847,
+                baseline_comparison=0.620,
+                dataset="Natural Questions (multi-hop subset)",
+            ),
+        ],
+        limitations=[
+            "Evaluated only on English Wikipedia passages",
+            "Requires trained sparse encoder model (~110M parameters)",
+        ],
+        mathematical_core=MathCore(
+            formulation=(
+                "Sparse term weights from pre-trained language model; "
+                "per-sub-query retrieval with RRF aggregation"
+            ),
+            complexity=None,
+            assumptions=[
+                "Pre-trained language model available",
+                "Inverted index infrastructure exists",
+            ],
+        ),
+        paper_terms=[
+            "SPLADE",
+            "sparse retrieval",
+            "learned sparse representations",
+            "BM25",
+            "inverted index",
+            "multi-hop",
+            "reciprocal rank fusion",
+        ],
+    )
+
+
+@pytest.fixture
+def sample_architectural_summary():
+    """Pre-built ComprehensionSummary for architectural innovation paper."""
+    from research_engineer.comprehension.schema import (
+        ComprehensionSummary,
+        MathCore,
+        PaperClaim,
+    )
+
+    return ComprehensionSummary(
+        title="Knowledge Graph Construction from Retrieved Passages",
+        transformation_proposed=(
+            "Introduce a new pipeline stage that constructs a knowledge graph "
+            "from retrieved passages before answer generation"
+        ),
+        inputs_required=[
+            "retrieved passages",
+            "entity linking model",
+            "relation extraction model",
+        ],
+        outputs_produced=[
+            "knowledge graph",
+            "graph-structured context for generator",
+        ],
+        claims=[
+            PaperClaim(
+                claim_text=(
+                    "Knowledge graph intermediate representation improves "
+                    "factual accuracy by 18.4% on complex multi-hop questions"
+                ),
+                metric_name="factual_accuracy",
+                metric_value=18.4,
+                dataset="complex multi-hop questions",
+            ),
+        ],
+        limitations=[
+            "Graph construction adds 340ms latency per query",
+            "Requires entity linking model not currently in the pipeline",
+        ],
+        mathematical_core=MathCore(
+            formulation=(
+                "Entity-relation extraction followed by graph construction; "
+                "graph-structured context fed to generator"
+            ),
+            complexity="O(n*m) where n=passages, m=entities per passage",
+            assumptions=[
+                "Entity linking model is available",
+                "Relations are extractable from text",
+            ],
+        ),
+        paper_terms=[
+            "knowledge graph",
+            "entity linking",
+            "relation extraction",
+            "graph construction",
+            "intermediate representation",
+            "answer generation",
+        ],
+    )
