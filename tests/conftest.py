@@ -649,3 +649,326 @@ def sample_calibration_input(sample_accuracy_tracker, seeded_artifact_registry):
         repo_name="autonomous-research-engineer",
         current_maturity_level="foundational",
     )
+
+
+# ── Phase 6: Integration fixtures ──────────────────────────────────────────
+
+@pytest.fixture
+def tmp_integration_dir(tmp_path: Path) -> Path:
+    """Temporary directory for integration test data."""
+    d = tmp_path / "integration"
+    d.mkdir()
+    return d
+
+
+@pytest.fixture
+def sample_source_document_arxiv():
+    """Synthetic arXiv SourceDocument for testing the adapter."""
+    from datetime import date, datetime, timezone
+
+    from prior_art.schema.source_document import (
+        Author,
+        ContentBlock,
+        SourceDocument,
+        compute_content_hash,
+    )
+    from prior_art.schema.classifications import Classifications
+    from prior_art.schema.quality import QualitySignals
+    from prior_art.schema.references import References
+    from prior_art.schema.source_metadata import ArxivMetadata
+
+    blocks = [
+        ContentBlock(
+            block_id="arxiv:2401.12345_abstract_0",
+            block_type="abstract",
+            content=(
+                "We propose replacing BM25 sparse retrieval with learned sparse "
+                "representations using SPLADE. Our approach produces sparse term-weight "
+                "vectors compatible with inverted index lookup, achieving +36.7% MRR@10 "
+                "on multi-hop queries compared to BM25 baseline."
+            ),
+            section_label="Abstract",
+            sequence=0,
+        ),
+        ContentBlock(
+            block_id="arxiv:2401.12345_section_1",
+            block_type="text",
+            content=(
+                "The technique uses a pre-trained language model to generate sparse "
+                "term weights. Each query is decomposed into sub-queries, with "
+                "per-sub-query retrieval and aggregation via reciprocal rank fusion."
+            ),
+            section_label="Method",
+            sequence=1,
+        ),
+        ContentBlock(
+            block_id="arxiv:2401.12345_section_2",
+            block_type="text",
+            content=(
+                "On the multi-hop subset of Natural Questions, our method achieves "
+                "MRR@10 of 0.847 compared to BM25 baseline of 0.620."
+            ),
+            section_label="Results",
+            sequence=2,
+        ),
+        ContentBlock(
+            block_id="arxiv:2401.12345_section_3",
+            block_type="text",
+            content=(
+                "Evaluated only on English Wikipedia passages. Requires a trained "
+                "sparse encoder model (~110M parameters)."
+            ),
+            section_label="Limitations",
+            sequence=3,
+        ),
+    ]
+
+    now = datetime.now(timezone.utc)
+
+    return SourceDocument(
+        document_id="arxiv:2401.12345",
+        corpus="arxiv",
+        document_type="preprint",
+        title="Learned Sparse Representations for Multi-Hop Retrieval",
+        canonical_url="https://arxiv.org/abs/2401.12345",
+        language="en",
+        publication_date=date(2024, 1, 15),
+        authors=[Author(name="Alice Researcher", affiliations=["MIT"])],
+        venue="arXiv",
+        source_metadata=ArxivMetadata(
+            arxiv_id="2401.12345",
+            primary_category="cs.IR",
+            all_categories=["cs.IR", "cs.CL"],
+        ),
+        quality=QualitySignals(
+            citation_count=42,
+            peer_reviewed=False,
+            venue_tier="preprint",
+            overall_quality_score=0.72,
+        ),
+        classifications=Classifications(
+            tasks=["retrieval"],
+            techniques=["sparse_retrieval"],
+            modalities=["text"],
+            keywords=["SPLADE", "learned sparse", "multi-hop"],
+        ),
+        references=References(),
+        content_blocks=blocks,
+        first_ingested=now,
+        last_checked=now,
+        last_content_hash=compute_content_hash(blocks),
+    )
+
+
+@pytest.fixture
+def sample_source_document_patent():
+    """Synthetic USPTO SourceDocument for testing patent adapter path."""
+    from datetime import date, datetime, timezone
+
+    from prior_art.schema.source_document import (
+        Author,
+        ContentBlock,
+        SourceDocument,
+        compute_content_hash,
+    )
+    from prior_art.schema.classifications import Classifications
+    from prior_art.schema.quality import QualitySignals
+    from prior_art.schema.references import References
+    from prior_art.schema.source_metadata import USPTOMetadata
+
+    blocks = [
+        ContentBlock(
+            block_id="uspto:US12345678_abstract_0",
+            block_type="abstract",
+            content=(
+                "A method for optimizing reciprocal rank fusion weights in hybrid "
+                "retrieval systems. The method adjusts the k parameter from default "
+                "k=60 to an optimal value determined via grid search."
+            ),
+            section_label="Abstract",
+            sequence=0,
+        ),
+        ContentBlock(
+            block_id="uspto:US12345678_claim_0",
+            block_type="claim",
+            content=(
+                "1. A computer-implemented method for optimizing hybrid retrieval "
+                "quality by adjusting a fusion weight parameter k in a reciprocal "
+                "rank fusion formula applied to BM25 and dense retrieval scores."
+            ),
+            section_label="Claims",
+            sequence=1,
+        ),
+    ]
+
+    now = datetime.now(timezone.utc)
+
+    return SourceDocument(
+        document_id="uspto:US12345678",
+        corpus="uspto_grant",
+        document_type="patent_grant",
+        title="Optimal RRF Weight Selection for Hybrid Retrieval",
+        canonical_url=None,
+        language="en",
+        publication_date=date(2024, 6, 1),
+        authors=[Author(name="Bob Inventor")],
+        venue=None,
+        source_metadata=USPTOMetadata(
+            application_number="US16/123456",
+            filing_date=date(2023, 1, 15),
+            grant_date=date(2024, 6, 1),
+            patent_number="US12345678",
+        ),
+        quality=QualitySignals(
+            citation_count=5,
+            peer_reviewed=False,
+            venue_tier="patent",
+            overall_quality_score=0.55,
+        ),
+        classifications=Classifications(
+            tasks=["retrieval"],
+            techniques=["hybrid_retrieval"],
+            modalities=["text"],
+            keywords=["RRF", "BM25", "dense retrieval"],
+        ),
+        references=References(),
+        content_blocks=blocks,
+        first_ingested=now,
+        last_checked=now,
+        last_content_hash=compute_content_hash(blocks),
+    )
+
+
+@pytest.fixture
+def sample_source_document_minimal():
+    """Minimal SourceDocument with empty content_blocks for edge-case testing."""
+    from datetime import datetime, timezone
+
+    from prior_art.schema.source_document import (
+        SourceDocument,
+        compute_content_hash,
+    )
+    from prior_art.schema.classifications import Classifications
+    from prior_art.schema.quality import QualitySignals
+    from prior_art.schema.references import References
+    from prior_art.schema.source_metadata import GenericMetadata
+
+    now = datetime.now(timezone.utc)
+    blocks: list = []
+
+    return SourceDocument(
+        document_id="other:minimal-001",
+        corpus="other",
+        document_type="technical_report",
+        title="Minimal Document With No Content Blocks",
+        language="en",
+        source_metadata=GenericMetadata(),
+        quality=QualitySignals(overall_quality_score=0.1),
+        classifications=Classifications(),
+        content_blocks=blocks,
+        first_ingested=now,
+        last_checked=now,
+        last_content_hash=compute_content_hash(blocks),
+    )
+
+
+@pytest.fixture
+def sample_source_documents_batch(
+    sample_source_document_arxiv,
+    sample_source_document_patent,
+):
+    """Batch of 3 SourceDocuments for batch pipeline testing."""
+    from datetime import date, datetime, timezone
+
+    from prior_art.schema.source_document import (
+        Author,
+        ContentBlock,
+        SourceDocument,
+        compute_content_hash,
+    )
+    from prior_art.schema.classifications import Classifications
+    from prior_art.schema.quality import QualitySignals
+    from prior_art.schema.references import References
+    from prior_art.schema.source_metadata import ArxivMetadata
+
+    blocks = [
+        ContentBlock(
+            block_id="arxiv:2402.67890_abstract_0",
+            block_type="abstract",
+            content=(
+                "We propose a novel pipeline stage that constructs a knowledge graph "
+                "from retrieved passages before answer generation. This introduces a "
+                "new intermediate representation between retrieval and generation stages."
+            ),
+            section_label="Abstract",
+            sequence=0,
+        ),
+        ContentBlock(
+            block_id="arxiv:2402.67890_section_1",
+            block_type="text",
+            content=(
+                "A graph construction module extracts entities and relations from "
+                "retrieved passages, builds a knowledge graph, and feeds graph-structured "
+                "context to the generator. This requires a new evaluation methodology."
+            ),
+            section_label="Method",
+            sequence=1,
+        ),
+        ContentBlock(
+            block_id="arxiv:2402.67890_section_2",
+            block_type="text",
+            content=(
+                "The knowledge graph intermediate representation improves factual "
+                "accuracy by 18.4% on complex multi-hop questions."
+            ),
+            section_label="Results",
+            sequence=2,
+        ),
+        ContentBlock(
+            block_id="arxiv:2402.67890_section_3",
+            block_type="text",
+            content=(
+                "Graph construction adds 340ms latency per query. Requires "
+                "entity linking model not currently in the pipeline."
+            ),
+            section_label="Limitations",
+            sequence=3,
+        ),
+    ]
+
+    now = datetime.now(timezone.utc)
+
+    arch_doc = SourceDocument(
+        document_id="arxiv:2402.67890",
+        corpus="arxiv",
+        document_type="preprint",
+        title="Knowledge Graph Construction from Retrieved Passages",
+        canonical_url="https://arxiv.org/abs/2402.67890",
+        language="en",
+        publication_date=date(2024, 2, 20),
+        authors=[Author(name="Carol Scientist")],
+        venue="arXiv",
+        source_metadata=ArxivMetadata(
+            arxiv_id="2402.67890",
+            primary_category="cs.CL",
+        ),
+        quality=QualitySignals(
+            citation_count=15,
+            peer_reviewed=False,
+            venue_tier="preprint",
+            overall_quality_score=0.65,
+        ),
+        classifications=Classifications(
+            tasks=["retrieval", "generation"],
+            techniques=["graph_neural_network"],
+            modalities=["text"],
+            keywords=["knowledge graph", "entity linking", "graph construction"],
+        ),
+        references=References(),
+        content_blocks=blocks,
+        first_ingested=now,
+        last_checked=now,
+        last_content_hash=compute_content_hash(blocks),
+    )
+
+    return [sample_source_document_arxiv, sample_source_document_patent, arch_doc]
