@@ -972,3 +972,178 @@ def sample_source_documents_batch(
     )
 
     return [sample_source_document_arxiv, sample_source_document_patent, arch_doc]
+
+
+# -- Phase 7: Video Integration fixtures ──────────────────────────────────
+
+
+@pytest.fixture
+def sample_video_pipeline_output():
+    """Synthetic VideoPipelineOutput with 4 slides covering all section types."""
+    from research_engineer.integration.video_adapter import (
+        SlideData,
+        VideoPipelineOutput,
+    )
+
+    return VideoPipelineOutput(
+        title="Learned Sparse Representations for Multi-Hop Retrieval",
+        video_path="/tmp/test_talk.mp4",
+        slide_transcripts=[
+            SlideData(
+                slide_number=1,
+                description="Abstract and Overview",
+                start_s=0.0,
+                end_s=120.0,
+                text=(
+                    "We propose replacing BM25 sparse retrieval with learned sparse "
+                    "representations using SPLADE. Our approach produces sparse term-weight "
+                    "vectors compatible with inverted index lookup, achieving +36.7% MRR@10 "
+                    "on multi-hop queries compared to BM25 baseline."
+                ),
+                word_count=30,
+            ),
+            SlideData(
+                slide_number=2,
+                description="Method: Sparse Term Weight Generation",
+                start_s=120.0,
+                end_s=300.0,
+                text=(
+                    "The technique uses a pre-trained language model to generate sparse "
+                    "term weights. Each query is decomposed into sub-queries, with "
+                    "per-sub-query retrieval and aggregation via reciprocal rank fusion."
+                ),
+                word_count=28,
+            ),
+            SlideData(
+                slide_number=3,
+                description="Evaluation Results",
+                start_s=300.0,
+                end_s=420.0,
+                text=(
+                    "On the multi-hop subset of Natural Questions, our method achieves "
+                    "MRR@10 of 0.847 compared to BM25 baseline of 0.620."
+                ),
+                word_count=20,
+            ),
+            SlideData(
+                slide_number=4,
+                description="Limitations and Future Work",
+                start_s=420.0,
+                end_s=480.0,
+                text=(
+                    "Evaluated only on English Wikipedia passages. Requires a trained "
+                    "sparse encoder model with approximately 110M parameters."
+                ),
+                word_count=16,
+            ),
+        ],
+    )
+
+
+@pytest.fixture
+def sample_video_pipeline_output_with_architecture():
+    """Synthetic VideoPipelineOutput with an architecture diagram slide."""
+    from research_engineer.integration.video_adapter import (
+        SlideData,
+        VideoPipelineOutput,
+    )
+
+    return VideoPipelineOutput(
+        title="Knowledge Graph Construction from Retrieved Passages",
+        video_path="/tmp/test_arch_talk.mp4",
+        slide_transcripts=[
+            SlideData(
+                slide_number=1,
+                description="Abstract",
+                start_s=0.0,
+                end_s=60.0,
+                text=(
+                    "We propose a novel pipeline stage that constructs a knowledge graph "
+                    "from retrieved passages before answer generation. This introduces a new "
+                    "intermediate representation between retrieval and generation stages."
+                ),
+                word_count=28,
+            ),
+            SlideData(
+                slide_number=2,
+                description="System Architecture Diagram",
+                start_s=60.0,
+                end_s=180.0,
+                text=(
+                    "A graph construction module extracts entities and relations from "
+                    "retrieved passages, builds a knowledge graph, and feeds graph-structured "
+                    "context to the generator. This requires a new evaluation methodology."
+                ),
+                word_count=26,
+            ),
+            SlideData(
+                slide_number=3,
+                description="Evaluation Results",
+                start_s=180.0,
+                end_s=300.0,
+                text=(
+                    "The knowledge graph intermediate representation improves factual "
+                    "accuracy by 18.4% on complex multi-hop questions."
+                ),
+                word_count=14,
+            ),
+            SlideData(
+                slide_number=4,
+                description="Limitations",
+                start_s=300.0,
+                end_s=360.0,
+                text=(
+                    "Graph construction adds 340ms latency per query. Requires "
+                    "entity linking model not currently in the pipeline."
+                ),
+                word_count=14,
+            ),
+        ],
+    )
+
+
+@pytest.fixture
+def sample_video_pipeline_output_empty():
+    """VideoPipelineOutput with no slides or transcripts for edge-case testing."""
+    from research_engineer.integration.video_adapter import VideoPipelineOutput
+
+    return VideoPipelineOutput(
+        title="Empty Video Pipeline Output",
+        video_path="/tmp/test_empty.mp4",
+    )
+
+
+@pytest.fixture
+def sample_video_pipeline_output_segments_only():
+    """VideoPipelineOutput with segment transcripts but no slide sync."""
+    from research_engineer.integration.video_adapter import (
+        SegmentTranscriptData,
+        VideoPipelineOutput,
+    )
+
+    return VideoPipelineOutput(
+        title="Segment-Only Video",
+        video_path="/tmp/test_segments.mp4",
+        segment_transcripts=[
+            SegmentTranscriptData(
+                text=(
+                    "We propose replacing BM25 sparse retrieval with learned sparse "
+                    "representations. The technique achieves improved MRR@10."
+                ),
+                language="en",
+                duration_s=60.0,
+                word_count=16,
+                segment_index=0,
+            ),
+            SegmentTranscriptData(
+                text=(
+                    "The method uses a pre-trained language model to generate "
+                    "sparse term weights for each query."
+                ),
+                language="en",
+                duration_s=60.0,
+                word_count=14,
+                segment_index=1,
+            ),
+        ],
+    )

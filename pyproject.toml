@@ -16,10 +16,12 @@ dependencies = [
 [project.optional-dependencies]
 graph = ["networkx>=3.0"]
 integration = ["prior-art-retrieval"]
+video = ["multimodal-rag-core"]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "prior-art-retrieval",
+    "multimodal-rag-core",
 ]
 
 [tool.setuptools.packages.find]
